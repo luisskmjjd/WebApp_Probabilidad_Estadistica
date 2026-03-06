@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>App Básica de Estadística</title>
+
+<style>
+body{
+font-family: Arial;
+margin: 30px;
+}
+
+button{
+margin:5px;
+}
+
+table,th,td{
+border:1px solid black;
+border-collapse:collapse;
+padding:5px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>App Básica de Estadística</h2>
+
+<h3>Ingreso de datos</h3>
+
+<input id="dato" type="number">
+<button onclick="agregarDato()">Agregar dato</button>
+
+<button onclick="generarDatos()">Generar 20 datos aleatorios</button>
+
+<p id="listaDatos"></p>
+
+<hr>
+
+<h3>Calcular estadísticas</h3>
+
+<button onclick="calcular()">Calcular</button>
+
+<p id="resultados"></p>
+
+<hr>
+
+<h3>Tabla de Frecuencias</h3>
+
+<table id="tabla">
+</table>
+
+<hr>
+
+<h3>Operaciones con conjuntos</h3>
+
+A:
+<input id="A" placeholder="1,2,3">
+
+B:
+<input id="B" placeholder="2,3,4">
+
+<button onclick="conjuntos()">Calcular</button>
+
+<p id="resConjuntos"></p>
+
+<hr>
+
+<h3>Probabilidad</h3>
+
+<input id="evento" placeholder="Número">
+
+<button onclick="probabilidad()">Calcular</button>
+
+<p id="resProb"></p>
+
+<hr>
+
+<h3>Regla multiplicativa</h3>
+
+Evento A:
+<input id="eventoA">
+
+Evento B:
+<input id="eventoB">
+
+<button onclick="multiplicativa()">Calcular</button>
+
+<p id="resMulti"></p>
+
+<hr>
+
+<h3>Permutaciones y combinaciones</h3>
+
+n:
+<input id="n">
+
+r:
+<input id="r">
+
+<button onclick="permutacion()">Permutación</button>
+
+<button onclick="combinacion()">Combinación</button>
+
+<p id="resPC"></p>
+<hr>
+<h3>Histograma</h3>
+<canvas id="histograma"></canvas>
+
+<hr>
+<h3>Ojiva (Frecuencia acumulada)</h3>
+<canvas id="ojiva"></canvas>
+
+<hr>
+<h3>Diagrama de Pareto</h3>
+<canvas id="pareto"></canvas>
+
+<hr>
+<h3>Diagrama de Árbol</h3>
+<button onclick="arbol()">Generar árbol</button>
+<div id="arbol"></div>
+<script>
+
+let datos=[];
+let grafHist;
+let grafOjiva;
+let grafPareto;
+function agregarDato(){
+
+let valor=parseFloat(document.getElementById("dato").value);
+
+if(!isNaN(valor)){
+datos.push(valor);
+}
+
+document.getElementById("listaDatos").innerHTML=datos.join(", ");
+
+}
+
+function generarDatos(){
+
+datos=[];
+
+for(let i=0;i<20;i++){
+
+let num=Math.floor(Math.random()*50)+1;
+
+datos.push(num);
+
+}
+
+document.getElementById("listaDatos").innerHTML=datos.join(", ");
+
+}
+
+function calcular(){
+
+if(datos.length<20){
+alert("Debes ingresar mínimo 20 datos");
+return;
+}
+
+let suma=0;
+
+for(let i=0;i<datos.length;i++){
+suma+=datos[i];
+}
+
+let media=suma/datos.length;
+
+let ordenados=[...datos].sort((a,b)=>a-b);
+
+let mediana=(ordenados[9]+ordenados[10])/2;
+
+let minimo=Math.min(...datos);
+
+let maximo=Math.max(...datos);
+
+let rango=maximo-minimo;
+
+let frecuencia={};
+
+datos.forEach(function(num){
+
+if(frecuencia[num]){
+frecuencia[num]++;
+}else{
+frecuencia[num]=1;
+}
+
+});
+
+let mayor=0;
+let moda="";
+
+for(let n in frecuencia){
+
+if(frecuencia[n]>mayor){
+
+mayor=frecuencia[n];
+moda=n;
+
+}
+
+}
+
+document.getElementById("resultados").innerHTML=
+
+"Media: "+media+"<br>"+
+"Mediana: "+mediana+"<br>"+
+"Moda: "+moda+"<br>"+
+"Mínimo: "+minimo+"<br>"+
+"Máximo: "+maximo+"<br>"+
+"Rango: "+rango;
+
+tablaFrecuencias(frecuencia);
+graficar(freq);
+}
+
+function tablaFrecuencias(freq){
+
+let total=datos.length;
+
+let tabla="<tr><th>Dato</th><th>fi</th><th>fr</th><th>Fi</th><th>Fr</th></tr>";
+
+let Fi=0;
+
+for(let n in freq){
+
+let fi=freq[n];
+
+Fi+=fi;
+
+let fr=(fi/total).toFixed(2);
+
+let Fr=(Fi/total).toFixed(2);
+
+tabla+="<tr>"+
+"<td>"+n+"</td>"+
+"<td>"+fi+"</td>"+
+"<td>"+fr+"</td>"+
+"<td>"+Fi+"</td>"+
+"<td>"+Fr+"</td>"+
+"</tr>";
+
+}
+
+document.getElementById("tabla").innerHTML=tabla;
+
+}
+
+function conjuntos(){
+
+let A=document.getElementById("A").value.split(",").map(Number);
+
+let B=document.getElementById("B").value.split(",").map(Number);
+
+let union=[...new Set(A.concat(B))];
+
+let inter=A.filter(x=>B.includes(x));
+
+let dif=A.filter(x=>!B.includes(x));
+
+document.getElementById("resConjuntos").innerHTML=
+
+"Unión: "+union+"<br>"+
+"Intersección: "+inter+"<br>"+
+"Diferencia A-B: "+dif;
+
+}
+
+function probabilidad(){
+
+let evento=parseFloat(document.getElementById("evento").value);
+
+let conteo=datos.filter(x=>x==evento).length;
+
+let p=conteo/datos.length;
+
+document.getElementById("resProb").innerHTML="Probabilidad = "+p;
+
+}
+
+function multiplicativa(){
+
+let a=parseInt(document.getElementById("eventoA").value);
+
+let b=parseInt(document.getElementById("eventoB").value);
+
+let total=a*b;
+
+document.getElementById("resMulti").innerHTML="Resultados posibles = "+total;
+
+}
+
+function factorial(n){
+
+if(n==0||n==1){
+return 1;
+}
+
+return n*factorial(n-1);
+
+}
+
+function permutacion(){
+
+let n=parseInt(document.getElementById("n").value);
+
+let r=parseInt(document.getElementById("r").value);
+
+let p=factorial(n)/factorial(n-r);
+
+document.getElementById("resPC").innerHTML="Permutación = "+p;
+
+}
+
+function combinacion(){
+
+let n=parseInt(document.getElementById("n").value);
+
+let r=parseInt(document.getElementById("r").value);
+
+let c=factorial(n)/(factorial(r)*factorial(n-r));
+
+document.getElementById("resPC").innerHTML="Combinación = "+c;
+
+}
+function graficar(freq){
+
+let valores=Object.keys(freq).map(Number).sort((a,b)=>a-b);
+let fi=valores.map(v=>freq[v]);
+
+let Fi=[];
+let acum=0;
+
+for(let i=0;i<fi.length;i++){
+acum+=fi[i];
+Fi.push(acum);
+}
+
+if(grafHist) grafHist.destroy();
+if(grafOjiva) grafOjiva.destroy();
+if(grafPareto) grafPareto.destroy();
+
+grafHist=new Chart(document.getElementById("histograma"),{
+type:"bar",
+data:{
+labels:valores,
+datasets:[{
+label:"Frecuencia",
+data:fi
+}]
+}
+});
+
+grafOjiva=new Chart(document.getElementById("ojiva"),{
+type:"line",
+data:{
+labels:valores,
+datasets:[{
+label:"Frecuencia acumulada",
+data:Fi
+}]
+}
+});
+
+grafPareto=new Chart(document.getElementById("pareto"),{
+type:"bar",
+data:{
+labels:valores,
+datasets:[
+{
+label:"Frecuencia",
+data:fi
+},
+{
+label:"Acumulado",
+data:Fi,
+type:"line"
+}
+]
+}
+});
+}
+function arbol(){
+
+let a=parseInt(document.getElementById("eventoA").value);
+let b=parseInt(document.getElementById("eventoB").value);
+
+let total=a*b;
+
+let html="";
+
+for(let i=1;i<=a;i++){
+
+html+="Evento A"+i+"<br>";
+
+for(let j=1;j<=b;j++){
+
+html+="&nbsp;&nbsp;↳ Evento B"+j+"<br>";
+
+}
+
+}
+
+html+="<br>Total de resultados: "+total;
+
+document.getElementById("arbol").innerHTML=html;
+
+}
+</script>
+
+</body>
+</html>
